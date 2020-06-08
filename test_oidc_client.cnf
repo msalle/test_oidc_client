@@ -1,0 +1,25 @@
+#
+# this script is sourced to set default variables 
+# for the CLI RP client (like secrets and config)
+#
+# baseurl is used to get the .well-known/openid-configuration
+baseurl="https://sso.example.org/"
+# parameters for localhost server used for redirect_uri
+localscheme=http
+localhost="localhost"
+localport=8000
+# You can set a hostcert and key and ca file for the localhost server used as
+# redirect_uri (only used when localscheme is https)
+#keyfile="/etc/pki/tls/server/localhost.key"
+#certfile="/etc/pki/tls/server/localhost.pem"
+#ca_certs="/etc/pki/tls/server/demoCA/cacert.pem"
+# fill in valid client ID and secret
+clientid="PUBLIC"
+clientsecret="SECRET"
+# fill in all required scopes
+scopes="cert_entitlement openid profile offline_access eduperson_scoped_affiliation eduperson_unique_id email eduperson_entitlement refeds_edu"
+# You can override the webbrowser
+#browser=/c/Program\ Files/Mozilla\ Firefox/firefox.exe
+#browser_opts="--private-window"
+# You can add additional cURL options
+#curlopt="-v -k"
