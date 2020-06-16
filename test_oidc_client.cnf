@@ -23,3 +23,5 @@ scopes="cert_entitlement openid profile offline_access eduperson_scoped_affiliat
 #browser_opts="--private-window"
 # You can add additional cURL options
 #curlopt="-v -k"
+# Set to 1 if the accesstoken is a JWT
+#at_is_jwt=0

@@ -57,6 +57,9 @@ redirecturi=${scheme}://${localhost:-localhost}:$port/$indexfile
 clientid=${clientid:-'PUBLIC'}
 clientsecret=${clientsecret:-'SECRET'}
 
+# access token is JWT?
+at_is_jwt=${at_is_jwt:-0}
+
 if [ $clientid == PUBLIC -o $clientsecret == SECRET ]; then
   echo "You need a clientID and clientSecret" >&2
   exit 1
@@ -249,7 +252,8 @@ response=$(curl $curlopt -sS \
     -d \
     "grant_type=authorization_code&code=$code&redirect_uri=$redirecturi&client_id=$clientid&client_secret=$clientsecret" \
     ${token_endp})
-echo;echo "token response:"
+echo;date
+echo "token response:"
 json_print "$response" || exit
 
 # Get access_token and id_token from the response
@@ -263,15 +267,31 @@ decode_jwt $id_token
 
 # Print access_token header and content
 echo;echo "access_token:"
-decode_jwt $access_token
-#echo $access_token
+if [ $at_is_jwt -eq 1 ];then
+    decode_jwt $access_token
+else
+    echo $access_token
+fi
+echo
 
 # Do userinfo request and print
 echo;echo "userinfo:"
-echo "Running: curl $curlopt -sS --header "Authorization: Bearer $access_token" ${userinfo_endp}"
-echo
+echo "Running: curl $curlopt -sS --header \"Authorization: Bearer $access_token\" ${userinfo_endp}"
 userinfo=$(curl $curlopt -sS \
     --header "Authorization: Bearer $access_token" \
     ${userinfo_endp})
 echo;echo "userinfo response:"
 json_print "$userinfo" || exit
+echo
+
+# Do refresh token and print
+#echo;echo "refresh token:"
+#response=$(curl $curlopt -sS \
+#    --header "Authorization: Bearer $access_token" \
+#    -d \
+#    "grant_type=refresh_token&refresh_token=$refresh_token&client_id=$clientid&client_secret=$clientsecret" \
+#    ${token_endp})
+#echo;date
+#echo "token response:"
+#json_print "$response" || exit
+#echo
