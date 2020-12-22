@@ -185,6 +185,11 @@ authorization_endp=$(json_get "$metadata" "authorization_endpoint")
 token_endp=$(json_get "$metadata" "token_endpoint")
 userinfo_endp=$(json_get "$metadata" "userinfo_endpoint")
 
+# Manually set getcert endpoint
+echo Authorization endpoint: $authorization_endp
+echo Token endpoint: $token_endp
+echo Userinfo endpoint: $userinfo_endp
+
 ########################################################################
 # Main flow starts here
 ########################################################################
@@ -197,11 +202,9 @@ cat > $formfile << EOF
 <html>
 <title>Authorization flow</title>
 <form action="$authorization_endp" method=get>
-<input type=hidden name=grant_type value="authorization_code">
 <input type=hidden name=scope value="$scopes">
 <input type=hidden name=response_type value="code">
 <input type=hidden name=client_id value="$clientid">
-<input type=hidden name=client_secret value="$clientsecret">
 <input type=hidden name=redirect_uri value="$redirecturi">
 <input type=hidden name=state value="$state">
 <input type=submit value="start authorization request">
@@ -247,10 +250,16 @@ code=$(sed -n "s/$pattern/\1/p" $logfile)
 echo;echo "Code: \"$code\""
 
 # Do /token request using authorization grant
+# NOTE: don't use --user
+#    --user $clientid:$clientsecret
+# since it gets truncated when longer than (...) bytes using older curl clients
+echo "Running: curl code request at token endpoint ${token_endp}"
 response=$(curl $curlopt -sS \
-    --user $clientid:$clientsecret \
-    -d \
-    "grant_type=authorization_code&code=$code&redirect_uri=$redirecturi&client_id=$clientid&client_secret=$clientsecret" \
+    -d "grant_type=authorization_code" \
+    -d "code=$code" \
+    -d "redirect_uri=$redirecturi" \
+    -d "client_id=$clientid" \
+    -d "client_secret=$clientsecret" \
     ${token_endp})
 echo;date
 echo "token response:"
@@ -276,7 +285,7 @@ echo
 
 # Do userinfo request and print
 echo;echo "userinfo:"
-echo "Running: curl $curlopt -sS --header \"Authorization: Bearer $access_token\" ${userinfo_endp}"
+echo "Running: curl userinfo request at ${userinfo_endp} using Authorization: Bearer header"
 userinfo=$(curl $curlopt -sS \
     --header "Authorization: Bearer $access_token" \
     ${userinfo_endp})
@@ -286,10 +295,13 @@ echo
 
 # Do refresh token and print
 #echo;echo "refresh token:"
+#echo "Running: curl refresh_token request at ${token_endp} using Authorization: Bearer header"
 #response=$(curl $curlopt -sS \
 #    --header "Authorization: Bearer $access_token" \
-#    -d \
-#    "grant_type=refresh_token&refresh_token=$refresh_token&client_id=$clientid&client_secret=$clientsecret" \
+#    -d "grant_type=refresh_token" \
+#    -d "refresh_token=$refresh_token" \
+#    -d "client_id=$clientid" \
+#    -d "client_secret=$clientsecret" \
 #    ${token_endp})
 #echo;date
 #echo "token response:"
