@@ -50,7 +50,7 @@ serverpid=""
 
 # redirect endpoint, will be served using SimpleHTTPServer
 port=${localport:-8000}
-scheme=${localscheme:-https}
+scheme=${localscheme:-http}
 redirecturi=${scheme}://${localhost:-localhost}:$port/$indexfile
 
 # client_id & client_secret
@@ -124,9 +124,10 @@ json_print()	{
     return 0
 }
 
-# Get value for given key from JSON object
+# Get value for given key from JSON object, note: better with jq and some proper
+# json parsing
 json_get()  {
-    echo "$1"|json_pp|grep "\"$2\""|cut -d'"' -f4
+    echo "$1"|json_pp|grep "\"$2\""|head -1|cut -d'"' -f4
 }
 
 # Starts a (localhost) http(s) server
@@ -230,7 +231,7 @@ echo;echo "Spawning webbrowser"
 # Wait for the user to return
 echo "Waiting for code till $(date +%H:%M:%S -d "now + $timeout seconds")..."
 errpattern='^.*'${indexfile}'?\(error=.*\)$'
-pattern='^.*'${indexfile}'?code=\([^ &]\+\)[ &].*$'
+pattern='^.*'${indexfile}'.*[?&]\+code=\([^ &]\+\)[ &].*$'
 for ((i=0; i<=$timeout; i++));do
     grep -q "$pattern" $logfile && break
     grep -q "$errpattern" $logfile && {
