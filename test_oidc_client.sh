@@ -152,6 +152,10 @@ python_http_server()	{
 from $class1 import HTTPServer
 from $class2 import SimpleHTTPRequestHandler
 import ssl
+import sys, io
+# For python3 we need to disable buffered output
+if sys.version_info.major>2:
+    sys.stderr = io.TextIOWrapper(open(sys.stderr.fileno(), 'wb', 0), write_through=True)
 
 httpd = HTTPServer(('$localhost', $port), SimpleHTTPRequestHandler)
 # In case of HTTPS, config the cert/key here
